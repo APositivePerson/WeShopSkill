@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信小店AI上架助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .card-title .icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .tag-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            min-height: 44px;
+        }
+        
+        .tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .tag .remove {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        
+        .tag-input input {
+            border: none;
+            flex: 1;
+            min-width: 100px;
+            padding: 4px;
+        }
+        
+        .tag-input input:focus {
+            outline: none;
+            border: none;
+        }
+        
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        
+        .result-section {
+            display: none;
+        }
+        
+        .result-section.active {
+            display: block;
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .result-label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .result-value {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .result-value.title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .selling-points {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .selling-point {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        
+        .price-tag {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+        
+        .price-tag .currency {
+            font-size: 14px;
+            color: #999;
+        }
+        
+        .price-tag .amount {
+            font-size: 28px;
+            font-weight: 700;
+            color: #e74c3c;
+        }
+        
+        .price-tag .range {
+            font-size: 14px;
+            color: #999;
+            margin-left: 8px;
+        }
+        
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .keyword {
+            background: #e8e8e8;
+            color: #666;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e8e8e8;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .tips {
+            background: linear-gradient(135deg, #fff9e6, #fff3cd);
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tips-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .tips-list {
+            font-size: 13px;
+            color: #856404;
+            padding-left: 20px;
+        }
+        
+        .tips-list li {
+            margin-bottom: 4px;
+        }
+        
+        .copy-btn {
+            float: right;
+            padding: 6px 12px;
+            font-size: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .copy-btn:hover {
+            background: #5a6fd6;
+        }
+        
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 微信小店AI上架助手</h1>
+            <p>输入商品信息，一键生成完整上架资料</p>
+        </div>
+        
+        <div class="tips">
+            <div class="tips-title">💡 填写提示</div>
+            <ul class="tips-list">
+                <li>商品名称尽量具体，如"纯棉白色T恤"而非"T恤"</li>
+                <li>属性标签帮助AI理解商品特点，如：透气、宽松、夏季</li>
+                <li>成本价用于计算建议售价，不会对外展示</li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">
+                <div class="icon">📝</div>
+                基本信息
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>商品名称 *</label>
+                    <input type="text" id="productName" placeholder="如：纯棉白色T恤">
+                </div>
+                <div class="form-group">
+                    <label>成本价（元）*</label>
+                    <input type="number" id="costPrice" placeholder="如：30">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>商品类目</label>
+                    <select id="category">
+                        <option value="clothing">服饰内衣</option>
+                        <option value="beauty">美妆个护</option>
+                        <option value="food">食品饮料</option>
+                        <option value="home">家居日用</option>
+                        <option value="digital">数码家电</option>
+                        <option value="sports">运动户外</option>
+                        <option value="maternal">母婴用品</option>
+                        <option value="bags">鞋靴箱包</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>品牌（选填）</label>
+                    <input type="text" id="brand" placeholder="如：无品牌">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>属性标签（按回车添加）</label>
+                <div class="tag-input" id="tagInput">
+                    <input type="text" id="tagInputField" placeholder="输入标签如：纯棉、白色、夏季...">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>商品简介（选填）</label>
+                <textarea id="description" placeholder="简单描述商品特点，AI将据此优化描述..."></textarea>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="btn btn-primary" onclick="generateProduct()">
+                ✨ AI生成上架资料
+            </button>
+            <button class="btn btn-secondary" onclick="resetForm()">
+                🔄 重置
+            </button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>AI正在生成商品资料...</p>
+        </div>
+        
+        <div class="result-section" id="result">
+            <div class="card">
+                <div class="card-title">
+                    <div class="icon">✅</div>
+                    生成结果
+                    <button class="copy-btn" onclick="copyAll()">复制全部</button>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">商品标题</div>
+                    <div class="result-value title" id="resultTitle"></div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">核心卖点</div>
+                    <div class="selling-points" id="resultSellingPoints"></div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">建议售价</div>
+                    <div class="price-tag">
+                        <span class="currency">¥</span>
+                        <span class="amount" id="resultPrice"></span>
+                        <span class="range" id="resultPriceRange"></span>
+                    </div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">推荐分类</div>
+                    <div class="category-badge" id="resultCategory"></div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">搜索关键词</div>
+                    <div class="keywords" id="resultKeywords"></div>
+                </div>
+                
+                <div class="result-item">
+                    <div class="result-label">商品描述</div>
+                    <div class="result-value" id="resultDescription"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 标签输入功能
+        const tagInput = document.getElementById('tagInput');
+        const tagInputField = document.getElementById('tagInputField');
+        let tags = [];
+        
+        tagInputField.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (value && !tags.includes(value)) {
+                    tags.push(value);
+                    renderTags();
+                    this.value = '';
+                }
+            }
+        });
+        
+        function renderTags() {
+            const existingTags = tagInput.querySelectorAll('.tag');
+            existingTags.forEach(t => t.remove());
+            
+            tags.forEach((tag, index) => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag';
+                tagEl.innerHTML = `${tag} <span class="remove" onclick="removeTag(${index})">×</span>`;
+                tagInput.insertBefore(tagEl, tagInputField);
+            });
+        }
+        
+        function removeTag(index) {
+            tags.splice(index, 1);
+            renderTags();
+        }
+        
+        // 生成商品
+        function generateProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const cost = document.getElementById('costPrice').value;
+            
+            if (!name) {
+                alert('请输入商品名称');
+                return;
+            }
+            if (!cost || cost <= 0) {
+                alert('请输入有效的成本价');
+                return;
+            }
+            
+            // 显示加载
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('result').classList.remove('active');
+            
+            // 模拟AI生成（实际使用时替换为真实API调用）
+            setTimeout(() => {
+                const result = generateMockResult(name, parseFloat(cost), tags);
+                displayResult(result);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('result').classList.add('active');
+            }, 1500);
+        }
+        
+        // 模拟生成结果
+        function generateMockResult(name, cost, tags) {
+            const margin = 0.5;
+            const recommended = Math.ceil(cost * (1 + margin) / 10) * 10 - 1;
+            
+            return {
+                title: `${name}${tags.length > 0 ? ' ' + tags.slice(0, 2).join('') : ''} 新款热销`,
+                sellingPoints: [
+                    '精选优质材质，品质保证',
+                    '精工细作，细节考究',
+                    tags.length > 0 ? `${tags[0]}设计，舒适体验` : '舒适体验，贴身呵护',
+                    '百搭时尚，轻松驾驭',
+                    '性价比高，物超所值'
+                ],
+                price: recommended,
+                priceRange: `¥${Math.floor(cost * 1.3)} - ¥${Math.floor(cost * 2)}`,
+                category: '服饰内衣 > T恤',
+                keywords: [name, ...tags, '热销', '推荐'].slice(0, 8),
+                description: `✨ ${name}，品质之选\n\n📋 产品参数\n• 材质：优质面料\n• 尺码：S-XXL\n• 颜色：多色可选\n\n🌟 产品特色\n精选优质材料，精工细作，给您舒适的体验。\n\n🎯 适用场景\n适合日常穿着，百搭时尚，轻松驾驭各种场合。\n\n🛡️ 售后保障\n• 正品保证，假一赔十\n• 7天无理由退换\n• 质量问题包退包换`
+            };
+        }
+        
+        // 展示结果
+        function displayResult(result) {
+            document.getElementById('resultTitle').textContent = result.title;
+            document.getElementById('resultPrice').textContent = result.price;
+            document.getElementById('resultPriceRange').textContent = result.priceRange;
+            document.getElementById('resultCategory').innerHTML = `📂 ${result.category}`;
+            document.getElementById('resultDescription').innerHTML = result.description.replace(/\n/g, '<br>');
+            
+            // 卖点
+            const spContainer = document.getElementById('resultSellingPoints');
+            spContainer.innerHTML = result.sellingPoints.map(p => 
+                `<span class="selling-point">${p}</span>`
+            ).join('');
+            
+            // 关键词
+            const kwContainer = document.getElementById('resultKeywords');
+            kwContainer.innerHTML = result.keywords.map(k => 
+                `<span class="keyword">${k}</span>`
+            ).join('');
+        }
+        
+        // 重置表单
+        function resetForm() {
+            document.getElementById('productName').value = '';
+            document.getElementById('costPrice').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('description').value = '';
+            tags = [];
+            renderTags();
+            document.getElementById('result').classList.remove('active');
+        }
+        
+        // 复制全部
+        function copyAll() {
+            const title = document.getElementById('resultTitle').textContent;
+            const description = document.getElementById('resultDescription').innerText;
+            const price = document.getElementById('resultPrice').textContent;
+            
+            const text = `标题：${title}\n售价：¥${price}\n\n描述：\n${description}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已复制到剪贴板！');
+            });
+        }
+    </script>
+</body>
+</html>
